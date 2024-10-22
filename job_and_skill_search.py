@@ -3,4 +3,5 @@ class JobSearchWithSkills:
         self.job_title = job_title
         self.size = size
 
-
+    def search(self):
+        pass
