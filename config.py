@@ -41,8 +41,7 @@ COOKIE = AUTHENTICATED_COOKIES = {
     "UserMatchHistory": "AQI_QuoA-2hRwQAAAZLG132Pgf8qgJbfpZGdUth5pieCaj-nLcA7tfyRtzw3VJmBGYJFGAypih2BO4vi8bZu8SaU7Xv4V0Mhko_94_b3AV3QLnSg3HteO1nUVZyYSp4AAHb4VbiHK3d9swHddb0Ajmot5ScgDqAH2CIDgJJoo5OSZP8S_TeCStWZyLvJoo_EiC7jJoUAC7XLjN6rvo7cn62qOBDMYsuluXnYx9F2LZjah3CoC6I1vD7nwkRqKLZKIXlMWEfw3GGQFfTgyqk9kLWVa-zelAU7CY98aXrpR9M0vr8L9gPvfMax1HM7GOiiyRlP8jPiDuMBjH6qCyzK42tIzt_Dn4GK4sEO_BcJwWnSBScB9w",
     "sdsc": "22%3A1%2C1729912865947%7EJAPP%2C0m7GGwXYz3CogxHYJzSG4asq7ing="
 }
-# https://www.linkedin.com/jobs/search/?origin=JOB_SEARCH_PAGE_SEARCH_BUTTON&refresh=true
-# https://www.linkedin.com/jobs/search?trk=organization_guest_guest_nav_menu_jobs&position=1&pageNum=0&original_referer=
+
 BASE_URL = 'https://www.linkedin.com/jobs/search?trk=organization_guest_guest_nav_menu_jobs&position=1&pageNum=0&original_referer='
-JOB_URL = ''
-JOB_CLASS_CONTAINER = ''
+INFO_CONTAINER_DIV = 'base-card relative w-full hover:no-underline focus:no-underline base-card--link base-search-card base-search-card--link job-search-card'
+JOB_CLASS_CONTAINER_UL = 'jobs-search__results-list'
