@@ -10,7 +10,8 @@ class DataFetcher:
         self.size = size
         self.headers = c.HEADERS
         self.base_url = c.BASE_URL
-        self.cookie = c.COOKIE
+        self.job_class_container_ul = c.JOB_CLASS_CONTAINER_UL
+        self.info_container_div = c.INFO_CONTAINER_DIV
         self.job_ids = []
         self.initialize()
 
@@ -27,10 +28,12 @@ class DataFetcher:
 
     def get_job_ids(self, html_content):
         soup = BeautifulSoup(html_content, 'lxml')
-        job_search_list = soup.find('ul',class_='jobs-search__results-list')
+        job_search_list = soup.find('ul',class_=self.job_class_container_ul)
+        container = job_search_list.find_all('div', class_=self.info_container_div)
+        for element in container:
+            job_entity = element.get('data-entity-urn')
+            ur, li, ab, id = job_entity.split(':')
+            self.job_ids.append(id)
 
 
-
-
-# Example usage
 df = DataFetcher(job_title='python')
