@@ -1,7 +1,5 @@
-class JobSearchWithSkills:
-    def __init__(self, job_title, size=50):
-        self.job_title = job_title
-        self.size = size
+import confedential as c
+from fetch_data_by_webscrapping import DataFetcher
 
-    def search(self):
-        pass
+if __name__ == "__main__":
+    DataFetcher(username=c.username,password=c.password,job_title='Machine Learning')

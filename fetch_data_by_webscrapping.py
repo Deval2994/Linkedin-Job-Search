@@ -1,69 +1,68 @@
-import json
 import time
-
 import requests
 from bs4 import BeautifulSoup
 import config as c
+from selenium import webdriver
+from selenium.webdriver.common.by import By as by
 
 
 class DataFetcher:
-    def __init__(self, job_title, job_location='United States', size=20):
+    def __init__(self,username, password, job_title, job_location='United States', size=50):
+        self.username = username
+        self.password = password
         self.job_title = job_title
-        self.size = size
-        self.headers = c.HEADERS
-        self.cookie = c.COOKIE
-        self.base_url = c.BASE_URL
-        self.job_posting_url = c.job_posting_url
-        self.job_class_container_ul = c.JOB_CLASS_CONTAINER_UL
-        self.info_container_div = c.INFO_CONTAINER_DIV
         self.job_location = job_location
+        self.size = size
+        # From config.py
+        self.job_url = c.JOB_URL
+        self.login_url = c.LOGIN_URL
+        self.login_username_fieldid = c.LOGIN_USERNAME_fieldID
+        self.login_password_fieldid = c.LOGIN_PASSWORD_fieldID
+        self.login_sumbit_selector = c.LOGIN_SUMBIT_selector
+        self.job_class_container_div = c.JOB_CLASS_CONTAINER_DIV
+        self.job_list = c.JOBS_LIST
+        self.unseen_job_list = c.UNSEEN_JOB_LIST
+        self.job_skip = c.SKIP_JOB_ENTITY
+        self.job_id_entity = c.JOB_ID_ENTITY
         self.job_ids = []
-        # self.initialize()
-        self.tester_method()
+        self.browser = webdriver.Chrome()
+        self.browser.maximize_window()
 
-    def tester_method(self):
-        session = requests.Session()
-        job_title = '+'.join(self.job_title.split())
-        location = '+'.join(self.job_location.split())
-        job_url = f"{self.base_url}{job_title}&location={location}&geoId=101174742&trk=public_jobs_jobs-search-bar_search-submit&original_referer="
-        # Make a request to the target URL
-        i = 1
-        while True:
-            response = session.get(job_url, headers=self.headers,cookies=self.cookie)
-            # Print the cookies used in the session
-            print(response.status_code)
-            if response.status_code == 200:
-                for cookie in session.cookies:
-                    print(f'{i}{cookie.name}: {cookie.value}')
-                    i += 1
-                break
+        self.initialize()
+
 
     def initialize(self):
-        html_content = self.get_html()
-        self.get_job_ids(html_content=html_content)
+        self.do_login()
+        time.sleep(10)
+        job_url = self.get_job_url()
+        self.browser.get(job_url)
+        time.sleep(3)
+        # container = self.browser.find_element("class name", "jobs-search-results-list")
+        # self.browser.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight", container)
+        # time.sleep(13)
+        html_source = self.browser.page_source
+        self.get_job_ids(html_source,self.job_skip)
 
-    def get_html(self):
+    def do_login(self):
+        self.browser.get(self.login_url)
+        try:
+            self.browser.find_element(by.ID, self.login_username_fieldid).send_keys(self.username)
+            self.browser.find_element(by.ID, self.login_password_fieldid).send_keys(self.password)
+            self.browser.find_element(by.CSS_SELECTOR, self.login_sumbit_selector).click()
+        except Exception:
+            print('error occurred')
+    def get_job_url(self):
         job_title = '+'.join(self.job_title.split())
         location = '+'.join(self.job_location.split())
-        job_url = f"{self.base_url}{job_title}&location={location}&geoId=101174742&trk=public_jobs_jobs-search-bar_search-submit&original_referer="
-        print(job_url)
-        while True:
-            response = requests.get(url=job_url, headers=self.headers)
-            if response.status_code == 200:
-                return response.text
+        return f"{self.job_url}{job_title}&location={location}"
 
-    def abcd(self):
-        pass
-
-    def get_job_ids(self, html_content):
-        soup = BeautifulSoup(html_content, 'lxml')
-        job_search_list = soup.find('ul', class_=self.job_class_container_ul)
-        container = job_search_list.find_all('div', class_=self.info_container_div)
-        for element in container:
-            job_entity = element.get('data-entity-urn')
-            ur, li, ab, id = job_entity.split(':')
-            self.job_ids.append(id)
-            print(id)
-
-
-df = DataFetcher(job_title='python', job_location='Canada')
+    def get_job_ids(self, content,skip):
+        soup = BeautifulSoup(content,'lxml')
+        job_container = soup.find('div', class_=self.job_class_container_div)
+        print(job_container)
+        jobs = job_container.find_all('li', class_=self.job_list)
+        unseen_jobs = job_container.find_all('li',class_=self.unseen_job_list)
+        all_jobs = jobs + unseen_jobs
+        for job in all_jobs:
+            print(job.get(self.job_id_entity))
+        print(len(all_jobs))
