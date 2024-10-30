@@ -1,4 +1,5 @@
 import time
+import re
 import requests
 from bs4 import BeautifulSoup
 import config as c
@@ -30,11 +31,10 @@ class DataFetcher:
 
         self.initialize()
 
-
-
     def initialize(self):
         self.do_login()
-        time.sleep(10)
+        if self.check_CAPTCHA():
+            input("Capcha Detected...")
         job_url = self.get_job_url()
         self.browser.get(job_url)
         time.sleep(3)
@@ -52,6 +52,13 @@ class DataFetcher:
             self.browser.find_element(by.CSS_SELECTOR, self.login_sumbit_selector).click()
         except Exception:
             print('error occurred')
+
+
+    def check_CAPTCHA(self):
+        if re.search('Verification',self.browser.title):
+            return True
+        return False
+
     def get_job_url(self):
         job_title = '+'.join(self.job_title.split())
         location = '+'.join(self.job_location.split())
