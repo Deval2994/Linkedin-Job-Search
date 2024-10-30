@@ -31,6 +31,7 @@ class DataFetcher:
         self.initialize()
 
 
+
     def initialize(self):
         self.do_login()
         time.sleep(10)
