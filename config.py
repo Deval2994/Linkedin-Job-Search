@@ -16,3 +16,5 @@ SKILL_TEXT_A = 'app-aware-link job-details-how-you-match__skills-item-subtitle t
 JOB_POSITION_H1_CLASS = 't-24 t-bold inline'
 JOB_TYPE_SPAN_CLASS = 'ui-label ui-label--accent-3 text-body-small'
 JOB_TYPE_SPAN_CLASS_2 = 'job-details-jobs-unified-top-card__job-insight-view-model-secondary'
+COMPANY_NAME_DIV_CLASS = 'job-details-jobs-unified-top-card__company-name'
+COMPANY_NAME_TEXT_CLASS = 'app-aware-link'
