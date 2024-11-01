@@ -32,6 +32,8 @@ class DataFetcher:
         self.job_position_h1_class = c.JOB_POSITION_H1_CLASS
         self.job_type_span_class = c.JOB_TYPE_SPAN_CLASS
         self.job_type_span_class_2 = c.JOB_TYPE_SPAN_CLASS_2
+        self.company_name_div_class = c.COMPANY_NAME_DIV_CLASS
+        self.company_name_text_class = c.COMPANY_NAME_TEXT_CLASS
 
         self.job_ids = []
         self.start_position = 0
@@ -99,6 +101,13 @@ class DataFetcher:
         # self.get_position(bs)
         # self.get_skills(bs)
         # self.get_job_type(bs)
+        # self.get_company_name(bs)
+
+    def get_company_name(self, soup):
+        name_element = soup.find('div', class_=self.company_name_div_class).find('a', class_=self.company_name_text_class)
+        return name_element.getText()
+
+
     def get_skills(self, soup):
         skill_list = []
         combined_skills_list = []
