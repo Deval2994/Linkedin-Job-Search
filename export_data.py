@@ -1,6 +1,6 @@
 class ExportData():
     def __init__(self, dataFrame, export_to='json'):
-        if export_to in ['json', 'csv', 'xlsx']:
+        if export_to in ['json', 'csv', 'xlsx','excel']:
             self.export_to = export_to
         else:
             print("cannot export to", export_to, 'file')
@@ -22,7 +22,9 @@ class ExportData():
         self.df.to_json(path, orient='records', lines=False, indent=4)
 
     def export_to_csv(self):
-        pass
+        path = self.path + 'csv'
+        self.df.to_csv(path)
 
     def export_to_xlsx(self):
-        pass
+        path = self.path + 'xlsx'
+        self.df.to_excel(path,index=True)
