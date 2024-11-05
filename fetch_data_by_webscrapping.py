@@ -57,9 +57,7 @@ class DataFetcher:
             input("Capcha Detected...")
         self.search_web()
         for job in self.job_ids:
-            print(job)
             self.get_job_details(job)
-            self.tab = self.browser.window_handles
 
     def search_web(self):
         while len(self.job_ids) < self.size:
@@ -112,7 +110,7 @@ class DataFetcher:
         skills = self.get_skills(bs)
         job_type = self.get_job_type(bs)
         company_name = self.get_company_name(bs)
-        apply_link = self.get_apply_link()
+        apply_link = self.get_apply_link(job_id)
 
         new_row = pd.DataFrame([{
             'Company Name': company_name,
@@ -130,9 +128,8 @@ class DataFetcher:
                                                                                  class_=self.company_name_text_class)
         return name_element.getText()
 
-    def get_apply_link(self):
+    def get_apply_link(self,job_id):
         btn_text = self.browser.find_element(by.XPATH, self.easy_apply_span).text
-        print(btn_text)
         while True:
             try:
                 self.browser.find_element(by.XPATH, self.job_link_fullpath).click()
@@ -141,11 +138,12 @@ class DataFetcher:
             except Exception:
                 continue
         if btn_text == 'Easy Apply':
-            job_url = self.browser.current_url
+            job_url = f"https://www.linkedin.com/jobs/view/{job_id}/"
         else:
             self.browser.switch_to.window(self.browser.window_handles[1])
             job_url = self.browser.current_url
             self.browser.close()
+            self.browser.switch_to.window(self.browser.window_handles[0])
         return job_url
 
     def get_skills(self, soup):
