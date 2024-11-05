@@ -38,7 +38,8 @@ class DataFetcher:
         self.company_name_text_class = c.COMPANY_NAME_TEXT_CLASS
         self.job_link_fullpath = c.JOB_LINK_FULLPATH
         self.job_link_location_popup_id = c.JOB_LINK_LOCATION_POPUP_ID
-        self.easy_apply_span = c.EASY_APPLY_SPAN
+        self.easy_apply_span = c.EASY_APPLY_SPAN_FULLPATH
+        self.continue_applying = c.CONTINUE_APPLYING_FULLPATH
 
         self.job_ids = []
         self.start_position = 0
@@ -128,7 +129,7 @@ class DataFetcher:
                                                                                  class_=self.company_name_text_class)
         return name_element.getText()
 
-    def get_apply_link(self,job_id):
+    def get_apply_link(self, job_id):
         btn_text = self.browser.find_element(by.XPATH, self.easy_apply_span).text
         while True:
             try:
@@ -140,6 +141,10 @@ class DataFetcher:
         if btn_text == 'Easy Apply':
             job_url = f"https://www.linkedin.com/jobs/view/{job_id}/"
         else:
+            try:
+                self.browser.find_element(by.XPATH, self.continue_applying).click()
+            except Exception:
+                pass
             self.browser.switch_to.window(self.browser.window_handles[1])
             job_url = self.browser.current_url
             self.browser.close()
@@ -159,7 +164,7 @@ class DataFetcher:
             for element in listing:
                 if element not in skills_list:
                     skills_list += ';' + element
-        return skills_list.replace('and ','')[1:]
+        return skills_list.replace('and ', '')[1:]
 
     def get_position(self, soup):
         job_position = soup.find('h1', class_=self.job_position_h1_class)
@@ -172,5 +177,5 @@ class DataFetcher:
             each_element = element.find_all('span', {'aria-hidden': 'true'})
             for job in each_element:
                 if job is not None and job.text not in job_type:
-                    job_type = job_type +';'+ job.text
+                    job_type = job_type + ';' + job.text
         return job_type[1:]
