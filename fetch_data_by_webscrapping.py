@@ -38,6 +38,8 @@ class DataFetcher:
         self.company_name_text_class = c.COMPANY_NAME_TEXT_CLASS
         self.job_link_fullpath = c.JOB_LINK_FULLPATH
         self.job_link_location_popup_id = c.JOB_LINK_LOCATION_POPUP_ID
+        self.easy_apply_span = c.EASY_APPLY_SPAN
+
         self.job_ids = []
         self.start_position = 0
 
@@ -57,6 +59,7 @@ class DataFetcher:
         for job in self.job_ids:
             print(job)
             self.get_job_details(job)
+            self.tab = self.browser.window_handles
 
     def search_web(self):
         while len(self.job_ids) < self.size:
@@ -68,12 +71,14 @@ class DataFetcher:
 
     def do_login(self):
         self.browser.get(self.login_url)
-        try:
-            self.browser.find_element(by.ID, self.login_username_fieldid).send_keys(self.username)
-            self.browser.find_element(by.ID, self.login_password_fieldid).send_keys(self.password)
-            self.browser.find_element(by.CSS_SELECTOR, self.login_sumbit_selector).click()
-        except Exception:
-            print('error occurred')
+        while True:
+            try:
+                self.browser.find_element(by.ID, self.login_username_fieldid).send_keys(self.username)
+                self.browser.find_element(by.ID, self.login_password_fieldid).send_keys(self.password)
+                self.browser.find_element(by.CSS_SELECTOR, self.login_sumbit_selector).click()
+                break
+            except Exception:
+                continue
 
     def check_CAPTCHA(self):
         if re.search('Verification', self.browser.title):
@@ -101,7 +106,7 @@ class DataFetcher:
         self.browser.get(job_url)
         time.sleep(2)
         html_source = self.browser.page_source
-        bs = BeautifulSoup(html_source,'lxml')
+        bs = BeautifulSoup(html_source, 'lxml')
 
         position = self.get_position(bs)
         skills = self.get_skills(bs)
@@ -115,29 +120,38 @@ class DataFetcher:
             'Job Type': job_type,
             'Skills': skills,
             'Job Link': apply_link,
-            'Job Id' : job_id
+            'Job Id': job_id
         }])
 
         self.data_frame = pd.concat([self.data_frame, new_row], ignore_index=True)
 
     def get_company_name(self, soup):
-        name_element = soup.find('div', class_=self.company_name_div_class).find('a', class_=self.company_name_text_class)
+        name_element = soup.find('div', class_=self.company_name_div_class).find('a',
+                                                                                 class_=self.company_name_text_class)
         return name_element.getText()
 
     def get_apply_link(self):
-        self.browser.find_element(by.XPATH, self.job_link_fullpath).click()
-
-        try:
-            self.browser.find_element(by.ID, self.job_link_location_popup_id)
-            return None
-        except Exception:
-            pass
-        return self.browser.page_source
+        btn_text = self.browser.find_element(by.XPATH, self.easy_apply_span).text
+        print(btn_text)
+        while True:
+            try:
+                self.browser.find_element(by.XPATH, self.job_link_fullpath).click()
+                time.sleep(1)
+                break
+            except Exception:
+                continue
+        if btn_text == 'Easy Apply':
+            job_url = self.browser.current_url
+        else:
+            self.browser.switch_to.window(self.browser.window_handles[1])
+            job_url = self.browser.current_url
+            self.browser.close()
+        return job_url
 
     def get_skills(self, soup):
-        skills_list = []
+        skills_list = ''
         combined_skills_list = []
-        skills_container = soup.find_all('a', class_=[self.skill_text_a,self.skill_text_a_2])
+        skills_container = soup.find_all('a', class_=[self.skill_text_a, self.skill_text_a_2])
 
         for skill in skills_container:
             combined_skills_list.append(skill.getText())
@@ -145,20 +159,20 @@ class DataFetcher:
         for skill_list in combined_skills_list:
             listing = (re.split(r'[·,]', skill_list))
             for element in listing:
-                skills_list.append(element.replace('and ',''))
-
-        return skills_list
+                if element not in skills_list:
+                    skills_list += ';' + element
+        return skills_list.replace('and ','')[1:]
 
     def get_position(self, soup):
         job_position = soup.find('h1', class_=self.job_position_h1_class)
         return job_position.getText()
 
-    def get_job_type(self,soup):
-        job_type = []
-        job_type_element = soup.find_all('span', class_= [self.job_type_span_class, self.job_type_span_class_2])
+    def get_job_type(self, soup):
+        job_type = ''
+        job_type_element = soup.find_all('span', class_=[self.job_type_span_class, self.job_type_span_class_2])
         for element in job_type_element:
             each_element = element.find_all('span', {'aria-hidden': 'true'})
             for job in each_element:
                 if job is not None and job.text not in job_type:
-                    job_type.append(job.text)
-        return job_type
+                    job_type = job_type +';'+ job.text
+        return job_type[1:]
