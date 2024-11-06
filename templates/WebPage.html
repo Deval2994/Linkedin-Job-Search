@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>LinkedIn Job Scraper</title>
+	<link rel="stylesheet" href="design.css">
+</head>
+<body>
+<div class="container">
+	<h1>LinkedIn Job Scraper</h1>
+	<form id="job-search-form" action="/fetch_jobs" method="POST">
+		<label for="username">LinkedIn Username:</label>
+		<input type="text" id="username" name="username" required>
+		
+		<label for="password">LinkedIn Password:</label>
+		<input type="password" id="password" name="password" required>
+		
+		<label for="job-title">Job Title:</label>
+		<input type="text" id="job-title" name="job_title" placeholder="e.g., Machine Learning" required>
+		
+		<label for="job-location">Location:</label>
+		<input type="text" id="job-location" name="job_location" placeholder="e.g., United States">
+		
+		<label for="size">Number of Results:</label>
+		<input type="number" id="size" name="size" min="1" max="100" value="50">
+		
+		<button type="submit">Fetch Jobs</button>
+	</form>
+	<div id="result">
+		<!-- Job results will appear here -->
+	</div>
+</div>
+</body>
+</html>
