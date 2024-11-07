@@ -9,7 +9,14 @@
 
     <!-- Display JSON data in a preformatted style for readability -->
     <pre>
-        {{ data | tojson(indent=2) }}
+        {{ data | tojson(indent=4) }}
     </pre>
+
+    <!-- Download buttons -->
+     <div style="text-align: center; margin-top: 20px;">
+        <button onclick="window.location.href='/download_json'">Download JSON</button>
+        <button onclick="window.location.href='/download_csv'">Download CSV</button>
+        <button onclick="window.location.href='/download_excel'">Download Excel</button>
+    </div>
 </body>
 </html>
