@@ -1,5 +1,6 @@
-import time
 import re
+import time
+
 import pandas as pd
 from bs4 import BeautifulSoup
 import config as c
@@ -25,12 +26,14 @@ class DataFetcher:
         self.job_class_container_div = c.JOB_CLASS_CONTAINER_DIV
         self.job_li = c.JOBS_LI
         self.unseen_job_li = c.UNSEEN_JOB_LI
+        self.unseen_job_li_fullpath = c.UNSEEN_JOB_LI_FULLPATH
         self.job_skip = c.SKIP_JOB_ENTITY
         self.job_id_entity = c.JOB_ID_ENTITY
         self.skills_link = c.SKILL_LINK_SELECTOR
         self.skill_container_ul_class = c.SKILL_CONTAINER_UL_CLASS
         self.skill_text_a = c.SKILL_TEXT_A
         self.skill_text_a_2 = c.SKILL_TEXT_A_2
+        self.skill_text_a_fullpath = c.SKILL_TEXT_A_FULLPATH
         self.job_position_h1_class = c.JOB_POSITION_H1_CLASS
         self.job_type_span_class = c.JOB_TYPE_SPAN_CLASS
         self.job_type_span_class_2 = c.JOB_TYPE_SPAN_CLASS_2
@@ -54,10 +57,11 @@ class DataFetcher:
 
     def initialize(self):
         self.do_login()
-        if self.check_CAPTCHA():
-            input("Capcha Detected...")
+        while self.check_CAPTCHA():
+            continue
         self.search_web()
         for job in self.job_ids:
+            print(job)
             self.get_job_details(job)
 
     def search_web(self):
@@ -103,7 +107,7 @@ class DataFetcher:
     def get_job_details(self, job_id):
         job_url = f"{self.job_url}{job_id}"
         self.browser.get(job_url)
-        time.sleep(2)
+        time.sleep(1)
         html_source = self.browser.page_source
         bs = BeautifulSoup(html_source, 'lxml')
 
@@ -125,19 +129,12 @@ class DataFetcher:
         self.data_frame = pd.concat([self.data_frame, new_row], ignore_index=True)
 
     def get_company_name(self, soup):
-        name_element = soup.find('div', class_=self.company_name_div_class).find('a',
-                                                                                 class_=self.company_name_text_class)
+        name_element = soup.find('div', class_=self.company_name_div_class).find('a',class_=self.company_name_text_class)
         return name_element.getText()
 
     def get_apply_link(self, job_id):
         btn_text = self.browser.find_element(by.XPATH, self.easy_apply_span).text
-        while True:
-            try:
-                self.browser.find_element(by.XPATH, self.job_link_fullpath).click()
-                time.sleep(1)
-                break
-            except Exception:
-                continue
+        self.browser.find_element(by.XPATH, self.easy_apply_span).click()
         if btn_text == 'Easy Apply':
             job_url = f"https://www.linkedin.com/jobs/view/{job_id}/"
         else:
@@ -177,5 +174,5 @@ class DataFetcher:
             each_element = element.find_all('span', {'aria-hidden': 'true'})
             for job in each_element:
                 if job is not None and job.text not in job_type:
-                    job_type = job_type + ';' + job.text
-        return job_type[1:]
+                    job_type = job_type + '; ' + job.text.strip()
+        return job_type[2:]
