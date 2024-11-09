@@ -33,6 +33,8 @@ class DataFetcher:
         self.skill_container_ul_class = c.SKILL_CONTAINER_UL_CLASS
         self.skill_text_a = c.SKILL_TEXT_A
         self.skill_text_a_2 = c.SKILL_TEXT_A_2
+        self.skill_text_btn_fullpath = c.SKILL_TEXT_BTN_FULLPATH
+        self.close_skill_btn = c.CLOSE_SKILL_BTN
         self.skill_text_a_fullpath = c.SKILL_TEXT_A_FULLPATH
         self.job_position_h1_class = c.JOB_POSITION_H1_CLASS
         self.job_type_span_class = c.JOB_TYPE_SPAN_CLASS
@@ -107,14 +109,14 @@ class DataFetcher:
     def get_job_details(self, job_id):
         job_url = f"{self.job_url}{job_id}"
         self.browser.get(job_url)
-        time.sleep(1)
+        time.sleep(2)
         html_source = self.browser.page_source
         bs = BeautifulSoup(html_source, 'lxml')
 
         position = self.get_position(bs)
-        skills = self.get_skills(bs)
         job_type = self.get_job_type(bs)
         company_name = self.get_company_name(bs)
+        skills = self.get_skills()
         apply_link = self.get_apply_link(job_id)
 
         new_row = pd.DataFrame([{
@@ -148,20 +150,17 @@ class DataFetcher:
             self.browser.switch_to.window(self.browser.window_handles[0])
         return job_url
 
-    def get_skills(self, soup):
+    def get_skills(self):
+        self.browser.find_element(by.XPATH, self.skill_text_btn_fullpath).click()
+        time.sleep(1)
+        soup = BeautifulSoup(self.browser.page_source, 'lxml')
         skills_list = ''
-        combined_skills_list = []
-        skills_container = soup.find_all('a', class_=[self.skill_text_a, self.skill_text_a_2])
-
-        for skill in skills_container:
-            combined_skills_list.append(skill.getText())
-
-        for skill_list in combined_skills_list:
-            listing = (re.split(r'[·,]', skill_list))
-            for element in listing:
-                if element not in skills_list:
-                    skills_list += ';' + element
-        return skills_list.replace('and ', '')[1:]
+        skills_container = soup.find_all('ul', class_='list-style-none mt2')[1]
+        combined_skills_list = skills_container.find_all('span', class_='text-body-small')
+        for skills in combined_skills_list:
+            skills_list += '; ' + skills.getText().strip()
+        self.browser.find_element(by.XPATH,self.close_skill_btn).click()
+        return skills_list.replace('and ', '')[2:]
 
     def get_position(self, soup):
         job_position = soup.find('h1', class_=self.job_position_h1_class)
