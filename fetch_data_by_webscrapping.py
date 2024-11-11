@@ -1,6 +1,5 @@
 import re
 import time
-
 import pandas as pd
 from bs4 import BeautifulSoup
 import config as c
@@ -29,11 +28,11 @@ class DataFetcher:
         self.unseen_job_li_fullpath = c.UNSEEN_JOB_LI_FULLPATH
         self.job_skip = c.SKIP_JOB_ENTITY
         self.job_id_entity = c.JOB_ID_ENTITY
-        self.skills_link = c.SKILL_LINK_SELECTOR
-        self.skill_container_ul_class = c.SKILL_CONTAINER_UL_CLASS
         self.skill_text_a = c.SKILL_TEXT_A
         self.skill_text_a_2 = c.SKILL_TEXT_A_2
         self.skill_text_btn_fullpath = c.SKILL_TEXT_BTN_FULLPATH
+        self.skill_container_ul = c.SKILL_CONTAINER_UL
+        self.skill_text_class = c.SKILLS_TEXT_CLASS
         self.close_skill_btn = c.CLOSE_SKILL_BTN
         self.skill_text_a_fullpath = c.SKILL_TEXT_A_FULLPATH
         self.job_position_h1_class = c.JOB_POSITION_H1_CLASS
@@ -44,6 +43,7 @@ class DataFetcher:
         self.job_link_fullpath = c.JOB_LINK_FULLPATH
         self.job_link_location_popup_id = c.JOB_LINK_LOCATION_POPUP_ID
         self.easy_apply_span = c.EASY_APPLY_SPAN_FULLPATH
+        self.apply_btn_full_path = c.APPLY_BTN_FULLPATH
         self.continue_applying = c.CONTINUE_APPLYING_FULLPATH
 
         self.job_ids = []
@@ -117,7 +117,7 @@ class DataFetcher:
         job_type = self.get_job_type(bs)
         company_name = self.get_company_name(bs)
         skills = self.get_skills()
-        apply_link = self.get_apply_link(job_id)
+        apply_link = self.get_apply_link(job_id,bs)
 
         new_row = pd.DataFrame([{
             'Company Name': company_name,
@@ -134,33 +134,46 @@ class DataFetcher:
         name_element = soup.find('div', class_=self.company_name_div_class).find('a',class_=self.company_name_text_class)
         return name_element.getText()
 
-    def get_apply_link(self, job_id):
-        btn_text = self.browser.find_element(by.XPATH, self.easy_apply_span).text
-        self.browser.find_element(by.XPATH, self.easy_apply_span).click()
+    def get_apply_link(self, job_id, soup):
+        container = soup.find('div', class_='jobs-apply-button--top-card')
+        btn_text = container.find('span', class_='artdeco-button__text').getText().strip()
         if btn_text == 'Easy Apply':
-            job_url = f"https://www.linkedin.com/jobs/view/{job_id}/"
-        else:
+            return f"https://www.linkedin.com/jobs/view/{job_id}/"
+        while True:
             try:
-                self.browser.find_element(by.XPATH, self.continue_applying).click()
+                self.browser.find_element(by.XPATH, self.apply_btn_full_path).click()
+                break
             except Exception:
-                pass
-            self.browser.switch_to.window(self.browser.window_handles[1])
-            job_url = self.browser.current_url
-            self.browser.close()
-            self.browser.switch_to.window(self.browser.window_handles[0])
+                continue
+        try:
+            self.browser.find_element(by.XPATH, self.continue_applying).click()
+        except Exception:
+            pass
+        self.browser.refresh()
+        self.browser.switch_to.window(self.browser.window_handles[1])
+        self.browser.refresh()
+        job_url = self.browser.current_url
+        self.browser.close()
+        self.browser.switch_to.window(self.browser.window_handles[0])
         return job_url
 
     def get_skills(self):
-        self.browser.find_element(by.XPATH, self.skill_text_btn_fullpath).click()
+        try:
+            self.browser.find_element(by.XPATH, self.skill_text_btn_fullpath).click()
+        except Exception:
+            return 'Please check on website; Skills not found'
         time.sleep(1)
         soup = BeautifulSoup(self.browser.page_source, 'lxml')
         skills_list = ''
-        skills_container = soup.find_all('ul', class_='list-style-none mt2')[1]
-        combined_skills_list = skills_container.find_all('span', class_='text-body-small')
-        for skills in combined_skills_list:
-            skills_list += '; ' + skills.getText().strip()
         self.browser.find_element(by.XPATH,self.close_skill_btn).click()
-        return skills_list.replace('and ', '')[2:]
+        try:
+            skills_container = soup.find_all('ul', class_=self.skill_container_ul)[1]
+            combined_skills_list = skills_container.find_all('span', class_=self.skill_text_class)
+            for skills in combined_skills_list:
+                skills_list += '; ' + skills.getText().strip()
+            return skills_list.replace('and ', '')[2:]
+        except Exception:
+            return 'Please check on website; Unexpected error occurs'
 
     def get_position(self, soup):
         job_position = soup.find('h1', class_=self.job_position_h1_class)
