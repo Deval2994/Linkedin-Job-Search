@@ -1,7 +1,12 @@
-from flask import Flask, render_template, request, send_file
+"""
+Description: This Flask app lets users scrape job listings and export the data in JSON, CSV, or Excel formats.
+             Users input job details, and the app scrapes the data, displays it, and allows
+             downloading the results in the desired format.
+"""
+
+from flask import send_file
 from fetch_data_by_webscrapping import DataFetcher
 from export_data import ExportData
-import confedential as c  # Assuming confedential stores your LinkedIn credentials
 from flask import Flask, render_template, request
 import json
 
@@ -67,4 +72,4 @@ def download_excel():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()

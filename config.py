@@ -1,3 +1,8 @@
+"""
+Description: This file contain the information of web source which later used in automation (selenium) and
+             web scrapping (BeautifulSoup) for extracting the data.
+"""
+
 LOGIN_URL = 'https://www.linkedin.com/login?fromSignIn=true&trk=guest_homepage-basic_nav-header-signin'
 BASE_URL = 'https://www.linkedin.com/jobs/search/?keywords='
 LOGIN_USERNAME_fieldID = 'username'
