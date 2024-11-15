@@ -144,8 +144,9 @@ class DataFetcher:
         self.data_frame = pd.concat([self.data_frame, new_row], ignore_index=True)
 
     def get_company_name(self, soup):  # Function to extract company name from the page using BeautifulSoup.
-        name_element = soup.find('div', class_=self.company_name_div_class).find('a',class_=self.company_name_text_class)
-        return name_element.getText()
+        name_element = soup.find('div', class_=self.company_name_div_class)
+        companyName_with_link = name_element.find('a',class_=self.company_name_text_class)
+        return name_element.getText() if companyName_with_link is None else companyName_with_link.getText()
 
     def get_apply_link(self, job_id, soup):  # Function to get the application link for a job. If "Easy Apply" is available, the LinkedIn job URL is used.
 
