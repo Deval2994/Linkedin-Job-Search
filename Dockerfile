@@ -1,10 +1,19 @@
 FROM python:3.12-slim
-RUN apt update
-WORKDIR /Linkedin Job Skills
-COPY . .
-RUN pip install --upgrade pip
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y wget unzip
+RUN wget https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip \
+    && unzip chromedriver_linux64.zip \
+    && mv chromedriver \
+    /usr/local/bin/chromedriver \
+    && chmod +x /usr/local/bin/chromedriver
+
+COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
+
+COPY . .
+
 EXPOSE 5000
-ENV FLASK_APP=app.py
-ENV FLASK_RUN_HOST=0.0.0.0
-CMD ["flask", "run"]
+
+CMD ["python", "app.py"]
